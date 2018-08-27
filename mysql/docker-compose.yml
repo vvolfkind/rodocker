@@ -1,0 +1,22 @@
+version: "3"
+
+services:
+   db_node_domain:
+     image: mysql:5.7
+     volumes:
+       - db_data:/var/lib/mysql
+     restart: always
+     environment:
+       MYSQL_ROOT_PASSWORD: root
+       MYSQL_DATABASE: testing1.0
+       MYSQL_USER: root
+       MYSQL_PASSWORD: root
+     container_name: mysql
+
+volumes:
+    db_data:
+
+networks:
+  default:
+    external:
+      name: nginx-proxy
