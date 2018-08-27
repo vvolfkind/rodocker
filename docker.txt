@@ -1,0 +1,38 @@
+
+// Borrar todas las imagenes y containers
+docker kill $(docker ps -q)
+docker rm $(docker ps -a -q)
+docker rmi $(docker images -q)
+
+//
+
+docker system prune --all --force --volumes
+
+//
+
+https://medium.com/the-code-review/clean-out-your-docker-images-containers-and-volumes-with-single-commands-b8e38253c271
+
+//
+
+
+
+docker network create nginx-proxy
+
+docker run -d -p 80:80 --name nginx-proxy --net nginx-proxy -v /var/run/docker.sock:/tmp/docker.sock jwilder/nginx-proxy
+
+// O si no, con el docker-compose.yml y el siguiente comando
+
+docker-compose up -d
+
+How nginx-proxy works to host multiple websites
+As you can see from the code in both options, the container listens on port 80 and exposes the same port inside of the container. That allows all incoming traffic to flow though nginx.
+
+You might be wondering what the /var/run/docker.sock:/tmp/docker.sock line accomplishes. Essentially, this gives any container access to the host’s Docker socket, which contains information about a variety of Docker events, such as creating a new container, or shutting one down.
+
+This means that every time you add a container, nginx-proxy sees the event through the socket, automatically creates the configuration file needed to route traffic, and restarts nginx to make the changes available immediately. nginx-proxy looks for containers with the VIRTUAL_HOST variable enabled, so that’s critical to our operations moving forward.
+
+Also important to note is the --net nginx-proxy line in the Docker command, and the networks: default: external: name: nginx-proxy block in the docker-compose.yml file. These establish that all containers will communicate over that Docker network.
+
+docker run -d --name blog --expose 80 --net nginx-proxy -e VIRTUAL_HOST=blog.DOMAIN.TLD wordpress
+
+Take note of a few elements here. --expose 80 will allow traffic to flow into the container on port 80. --net nginx-proxy ensures we’re using the Docker network we created earlier. Finally, -e VIRTUAL_HOST=blog.DOMAIN.TLD flags nginx-proxy to create the proxy information and direct traffic arriving to the correct domain.
